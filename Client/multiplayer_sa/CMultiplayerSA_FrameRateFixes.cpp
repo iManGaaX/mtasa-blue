@@ -925,7 +925,13 @@ void CMultiplayerSA::InitHooks_FrameRateFixes()
     // GitHub Issue #602
     MemPut(0x6811E9, &kOriginalTimeStep);
     MemPut(0x68128A, &kOriginalTimeStep);
-    MemPut(0x68131B, &kOriginalTimeStep);
+
+    // MemPut(0x68131B, &kOriginalTimeStep);
+    // Do NOT override the timestep at 0x68131B (the m_nGetToPosCounter increment in
+    // CTaskSimpleClimb::ProcessPed). Vanilla code accumulates real elapsed milliseconds there
+    // (~1000ms per second) and aborts the climb when the counter exceeds 1000ms. With a constant
+    // timestep of 1.667 the counter grows ~33ms per frame instead, so at high FPS (~160+) it hits
+    // the 1000ms threshold almost instantly and throws the ped off the wall.
 
     // CTimer::m_FrameCounter fixes
     EZHookInstall(CTimer__Update);
