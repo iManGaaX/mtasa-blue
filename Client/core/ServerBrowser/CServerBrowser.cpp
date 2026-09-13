@@ -153,6 +153,7 @@ CServerBrowser::CServerBrowser()
         m_bPendingFilterUpdate[i] = false;
         m_ulNextFilterUpdateTime[i] = 0;
         m_FilterState[i].searchText.clear();
+        m_FilterState[i].searchTextFolded.clear();
         m_FilterState[i].searchType = -1;
         m_FilterState[i].includeEmpty = false;
         m_FilterState[i].includeFull = false;
@@ -1313,11 +1314,13 @@ void CServerBrowser::AddServerToList(CServerListItem* pServer, ServerBrowserType
 
     if (!strServerSearchText.empty())
     {
+        const SString& strSearchTextFolded = filterState.searchTextFolded;
+
         if (iCurrentSearchType == SearchTypes::SERVERS)
         {
             // Search for the search text in the servername
             SString strServerName = pServer->strSearchableName;
-            bServerSearchFound = strServerName.ContainsI(strServerSearchText);
+            bServerSearchFound = SharedUtil::Utf8CaseFold(strServerName).Contains(strSearchTextFolded);
         }
         else if (iCurrentSearchType == SearchTypes::PLAYERS)
         {
@@ -1330,7 +1333,7 @@ void CServerBrowser::AddServerToList(CServerListItem* pServer, ServerBrowserType
                 {
                     SString strPlayerName = pServer->vecPlayers[i];
 
-                    if (strPlayerName.ContainsI(strServerSearchText))
+                    if (SharedUtil::Utf8CaseFold(strPlayerName).Contains(strSearchTextFolded))
                     {
                         bServerSearchFound = true;
                         int k = m_pServerPlayerList[Type]->AddRow(true);
@@ -2432,6 +2435,7 @@ CServerBrowser::SFilterState CServerBrowser::CaptureFilterState(ServerBrowserTyp
 {
     SFilterState state;
     state.searchText = m_pEditSearch[type] ? m_pEditSearch[type]->GetText() : std::string();
+    state.searchTextFolded = SharedUtil::Utf8CaseFold(state.searchText);
     state.searchType = m_pComboSearchType[type] ? m_pComboSearchType[type]->GetSelectedItemIndex() : 0;
     state.includeEmpty = m_pIncludeEmpty[type] && m_pIncludeEmpty[type]->GetSelected();
     state.includeFull = m_pIncludeFull[type] && m_pIncludeFull[type]->GetSelected();

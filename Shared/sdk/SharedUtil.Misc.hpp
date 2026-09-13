@@ -2484,6 +2484,47 @@ std::string SharedUtil::UTF16ToMbUTF8(const char16_t* input)
     return UTF16ToMbUTF8((const wchar_t*)input);
 }
 
+SString SharedUtil::Utf8CaseFold(const SString& str)
+{
+    if (str.empty())
+        return str;
+
+    bool bIsAscii = true;
+    for (unsigned char c : str)
+    {
+        if (c >= 0x80)
+        {
+            bIsAscii = false;
+            break;
+        }
+    }
+    if (bIsAscii)
+        return str.ToLower();
+
+#if defined(SHAREDUTIL_PLATFORM_WINDOWS)
+    const std::wstring wideText = MbUTF8ToUTF16(str);
+
+    if (UTF16ToMbUTF8(wideText) != str)
+        return str.ToLower();
+
+    const int iFoldedSize =
+        LCMapStringEx(LOCALE_NAME_INVARIANT, LCMAP_LOWERCASE, wideText.data(), static_cast<int>(wideText.size()), nullptr, 0, nullptr, nullptr, 0);
+    if (iFoldedSize <= 0)
+        return str.ToLower();
+
+    std::wstring strFolded(iFoldedSize, L'\0');
+    const int    iFoldedLength = LCMapStringEx(LOCALE_NAME_INVARIANT, LCMAP_LOWERCASE, wideText.data(), static_cast<int>(wideText.size()), strFolded.data(),
+                                               iFoldedSize, nullptr, nullptr, 0);
+    if (iFoldedLength <= 0)
+        return str.ToLower();
+
+    strFolded.resize(iFoldedLength);
+    return UTF16ToMbUTF8(strFolded);
+#else
+    return str.ToLower();
+#endif
+}
+
 // Get UTF8 confidence
 int SharedUtil::GetUTF8Confidence(const unsigned char* input, int len)
 {

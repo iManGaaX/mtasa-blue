@@ -482,6 +482,8 @@ namespace SharedUtil
 
     std::wstring ANSIToUTF16(const SString& s);
 
+    SString Utf8CaseFold(const SString& str);
+
     int GetUTF8Confidence(const unsigned char* input, int len);
 
     bool IsUTF8BOM(const void* pData, uint uiLength);

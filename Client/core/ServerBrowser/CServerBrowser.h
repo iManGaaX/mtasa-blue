@@ -269,6 +269,7 @@ private:
     struct SFilterState
     {
         std::string searchText;
+        SString     searchTextFolded;
         int         searchType;
         bool        includeEmpty;
         bool        includeFull;
